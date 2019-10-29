@@ -8,7 +8,6 @@ import (
 
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	listersv1 "k8s.io/client-go/listers/core/v1"
@@ -16,7 +15,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
-const schedulerName = "random-scheduler"
+const schedulerName = "minimum-pod-scheduler"
 
 type Scheduler struct {
 	clientset  *kubernetes.Clientset
@@ -122,14 +121,34 @@ func (s *Scheduler) SchedulePods() error {
 }
 
 func (s *Scheduler) findFit() (*v1.Node, error) {
-	nodes, err := s.nodeLister.List(labels.Everything())
-	if err != nil {
-		return nil, err
-	}
-	return nodes[rand.Intn(len(nodes))], nil
+      minPod := 110
+      var bestNode v1.Node
+
+      nodes, err := s.clientset.CoreV1().Nodes().List(metav1.ListOptions{})
+      if err != nil {
+          panic(err.Error())
+      }
+
+
+      for _, node := range nodes.Items {
+        pods, err := s.clientset.CoreV1().Pods("").List(metav1.ListOptions{FieldSelector: "spec.nodeName=" +  node.Name})
+        if err != nil {
+            panic(err.Error())
+        }
+
+        if len(pods.Items) < minPod {
+            bestNode = node
+            minPod = len(pods.Items)
+        }
+
+        fmt.Printf("There are %d pods in the %s node \n", len(pods.Items), node.Name)
+      }
+
+      fmt.Printf("==== winner node is %s with %d pods ====\n", bestNode.Name, minPod)
+      return &bestNode, nil
 }
 
-func (s *Scheduler) bindPod(p *v1.Pod, randomNode *v1.Node) error {
+func (s *Scheduler) bindPod(p *v1.Pod, bestNode *v1.Node) error {
 	return s.clientset.CoreV1().Pods(p.Namespace).Bind(&v1.Binding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      p.Name,
@@ -138,7 +157,7 @@ func (s *Scheduler) bindPod(p *v1.Pod, randomNode *v1.Node) error {
 		Target: v1.ObjectReference{
 			APIVersion: "v1",
 			Kind:       "Node",
-			Name:       randomNode.Name,
+			Name:       bestNode.Name,
 		},
 	})
 }
