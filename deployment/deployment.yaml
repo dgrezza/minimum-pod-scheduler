@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: random-scheduler
+  name: minimum-pod-scheduler
   labels:
-    app: random-scheduler
+    app: minimum-pod-scheduler
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: random-scheduler
+      app: minimum-pod-scheduler
   template:
     metadata:
       labels:
-        app: random-scheduler
+        app: minimum-pod-scheduler
     spec:
-      serviceAccount: random-scheduler
+      serviceAccount: minimum-pod-scheduler
       containers:
-        - name: random-scheduler
-          image: martonsereg/scheduler:v0.3
+        - name: minimum-pod-scheduler
+          image: dgrlabs/minimum-pod-scheduler:v0.2
           imagePullPolicy: Always

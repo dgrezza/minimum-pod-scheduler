@@ -8,7 +8,6 @@ import (
 
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	listersv1 "k8s.io/client-go/listers/core/v1"
@@ -18,7 +17,7 @@ import (
 	"errors"
 )
 
-const schedulerName = "random-scheduler"
+const schedulerName = "minimum-pod-scheduler"
 
 type predicateFunc func(node *v1.Node, pod *v1.Pod) bool
 type priorityFunc func(node *v1.Node, pod *v1.Pod) int
@@ -135,21 +134,35 @@ func (s *Scheduler) ScheduleOne() {
 	fmt.Println(message)
 }
 
-func (s *Scheduler) findFit(pod *v1.Pod) (string, error) {
-	nodes, err := s.nodeLister.List(labels.Everything())
-	if err != nil {
-		return "", err
-	}
+func (s *Scheduler) findFit() (*v1.Node, error) {
+      minPod := 110
+      var bestNode v1.Node
 
-	filteredNodes := s.runPredicates(nodes, pod)
-	if len(filteredNodes) == 0 {
-		return "", errors.New("failed to find node that fits pod")
-	}
-	priorities := s.prioritize(filteredNodes, pod)
-	return s.findBestNode(priorities), nil
+      nodes, err := s.clientset.CoreV1().Nodes().List(metav1.ListOptions{})
+      if err != nil {
+          panic(err.Error())
+      }
+
+
+      for _, node := range nodes.Items {
+        pods, err := s.clientset.CoreV1().Pods("").List(metav1.ListOptions{FieldSelector: "spec.nodeName=" +  node.Name})
+        if err != nil {
+            panic(err.Error())
+        }
+
+        if len(pods.Items) < minPod {
+            bestNode = node
+            minPod = len(pods.Items)
+        }
+
+        fmt.Printf("There are %d pods in the %s node \n", len(pods.Items), node.Name)
+      }
+
+      fmt.Printf("==== winner node is %s with %d pods ====\n", bestNode.Name, minPod)
+      return &bestNode, nil
 }
 
-func (s *Scheduler) bindPod(p *v1.Pod, node string) error {
+func (s *Scheduler) bindPod(p *v1.Pod, bestNode *v1.Node) error {
 	return s.clientset.CoreV1().Pods(p.Namespace).Bind(&v1.Binding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      p.Name,
@@ -158,7 +171,7 @@ func (s *Scheduler) bindPod(p *v1.Pod, node string) error {
 		Target: v1.ObjectReference{
 			APIVersion: "v1",
 			Kind:       "Node",
-			Name:       node,
+			Name:       bestNode.Name,
 		},
 	})
 }
