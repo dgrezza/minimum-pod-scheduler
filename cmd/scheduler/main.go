@@ -13,14 +13,21 @@ import (
 	listersv1 "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/apimachinery/pkg/util/wait"
+	"errors"
 )
 
 const schedulerName = "minimum-pod-scheduler"
+
+type predicateFunc func(node *v1.Node, pod *v1.Pod) bool
+type priorityFunc func(node *v1.Node, pod *v1.Pod) int
 
 type Scheduler struct {
 	clientset  *kubernetes.Clientset
 	podQueue   chan *v1.Pod
 	nodeLister listersv1.NodeLister
+	predicates []predicateFunc
+	priorities []priorityFunc
 }
 
 func NewScheduler(podQueue chan *v1.Pod, quit chan struct{}) Scheduler {
@@ -38,6 +45,12 @@ func NewScheduler(podQueue chan *v1.Pod, quit chan struct{}) Scheduler {
 		clientset:  clientset,
 		podQueue:   podQueue,
 		nodeLister: initInformers(clientset, podQueue, quit),
+		predicates: []predicateFunc{
+			randomPredicate,
+		},
+		priorities: []priorityFunc{
+			randomPriority,
+		},
 	}
 }
 
@@ -86,38 +99,39 @@ func main() {
 	defer close(quit)
 
 	scheduler := NewScheduler(podQueue, quit)
-	scheduler.SchedulePods()
+	scheduler.Run(quit)
 }
 
-func (s *Scheduler) SchedulePods() error {
+func (s *Scheduler) Run(quit chan struct{}) {
+	wait.Until(s.ScheduleOne, 0, quit)
+}
 
-	for p := range s.podQueue {
+func (s *Scheduler) ScheduleOne() {
 
-		fmt.Println("found a pod to schedule:", p.Namespace, "/", p.Name)
+	p := <-s.podQueue
+	fmt.Println("found a pod to schedule:", p.Namespace, "/", p.Name)
 
-		node, err := s.findFit()
-		if err != nil {
-			log.Println("cannot find node that fits pod", err.Error())
-			continue
-		}
-
-		err = s.bindPod(p, node)
-		if err != nil {
-			log.Println("failed to bind pod", err.Error())
-			continue
-		}
-
-		message := fmt.Sprintf("Placed pod [%s/%s] on %s\n", p.Namespace, p.Name, node.Name)
-
-		err = s.emitEvent(p, message)
-		if err != nil {
-			log.Println("failed to emit scheduled event", err.Error())
-			continue
-		}
-
-		fmt.Println(message)
+	node, err := s.findFit(p)
+	if err != nil {
+		log.Println("cannot find node that fits pod", err.Error())
+		return
 	}
-	return nil
+
+	err = s.bindPod(p, node)
+	if err != nil {
+		log.Println("failed to bind pod", err.Error())
+		return
+	}
+
+	message := fmt.Sprintf("Placed pod [%s/%s] on %s\n", p.Namespace, p.Name, node)
+
+	err = s.emitEvent(p, message)
+	if err != nil {
+		log.Println("failed to emit scheduled event", err.Error())
+		return
+	}
+
+	fmt.Println(message)
 }
 
 func (s *Scheduler) findFit() (*v1.Node, error) {
@@ -188,4 +202,59 @@ func (s *Scheduler) emitEvent(p *v1.Pod, message string) error {
 		return err
 	}
 	return nil
+}
+
+func (s *Scheduler) runPredicates(nodes []*v1.Node, pod *v1.Pod) []*v1.Node {
+	filteredNodes := make([]*v1.Node, 0)
+	for _, node := range nodes {
+		if s.predicatesApply(node, pod) {
+			filteredNodes = append(filteredNodes, node)
+		}
+	}
+	log.Println("nodes that fit:")
+	for _, n := range filteredNodes {
+		log.Println(n.Name)
+	}
+	return filteredNodes
+}
+
+func (s *Scheduler) predicatesApply(node *v1.Node, pod *v1.Pod) bool {
+	for _, predicate := range s.predicates {
+		if !predicate(node, pod) {
+			return false
+		}
+	}
+	return true
+}
+
+func randomPredicate(node *v1.Node, pod *v1.Pod) bool {
+	r := rand.Intn(2)
+	return r == 0
+}
+
+func (s *Scheduler) prioritize(nodes []*v1.Node, pod *v1.Pod) map[string]int {
+	priorities := make(map[string]int)
+	for _, node := range nodes {
+		for _, priority := range s.priorities {
+			priorities[node.Name] += priority(node, pod)
+		}
+	}
+	log.Println("calculated priorities:", priorities)
+	return priorities
+}
+
+func (s *Scheduler) findBestNode(priorities map[string]int) string {
+	var maxP int
+	var bestNode string
+	for node, p := range priorities {
+		if p > maxP {
+			maxP = p
+			bestNode = node
+		}
+	}
+	return bestNode
+}
+
+func randomPriority(node *v1.Node, pod *v1.Pod) int {
+	return rand.Intn(100)
 }
