@@ -10,7 +10,12 @@ pipeline {
       steps {
         sh '''
            export GO111MODULE=on
+           pwd
            ls -la
+           echo $GO_PATH
+           mkdir /go/src/${APP_NAME}
+           cp . /go/src/${APP_NAME}
+           cd /go/src/${APP_NAME}
            go mod download
            go mod vendor
            '''
