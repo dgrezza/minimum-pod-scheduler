@@ -1,7 +1,7 @@
 pipeline {
   agent {
     docker {
-      image 'golang:1-alpine3.13'
+      image 'dgrlabs/base-runner:latest'
     }
 
   }
