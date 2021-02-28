@@ -33,7 +33,7 @@ pipeline {
   }
 }
 
-def import_shared_lib(){
+def import_shared_lib() {
   set +x
   eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)"
   set +x
