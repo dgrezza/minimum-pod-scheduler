@@ -8,11 +8,12 @@ pipeline {
   stages {
     stage('Test') {
       steps {
-        import_shared_lib()
+        import_shared_lib(){
         sh '''
            update_depedencies
            test_coverage
         '''
+        }
       }
     }
 
