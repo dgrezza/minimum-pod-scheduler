@@ -10,7 +10,7 @@ pipeline {
       steps {
         sh '''
            set +x
-           eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)" > /dev/null
+           eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)"
            
            set +x
            update_depedencies
@@ -22,7 +22,7 @@ pipeline {
       steps {
         sh '''
         set +x
-        eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)" > /dev/null
+        eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)"
         
         cd ${GO_PATH}/${APP_NAME}
         set +x
