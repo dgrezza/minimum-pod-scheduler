@@ -14,7 +14,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"errors"
 )
 
 const schedulerName = "minimum-pod-scheduler"
