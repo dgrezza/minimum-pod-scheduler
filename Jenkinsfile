@@ -10,7 +10,7 @@ pipeline {
       steps {
         import_shared_lib()
         sh '''
-           . jenkins_lib
+           eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)" &> /dev/null
            update_depedencies
            test_coverage
         '''
@@ -42,7 +42,6 @@ pipeline {
 
 def import_shared_lib() {
   sh '''
-    eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)" > jenkins_lib
-    chmod +x jenkins_lib
+    eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)" &> /dev/null
   '''
 }
