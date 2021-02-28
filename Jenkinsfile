@@ -9,22 +9,9 @@ pipeline {
     stage('Update Dependencies') {
       steps {
         sh '''
-           APP_PATH=${GO_PATH}/${APP_NAME}
-           export GO111MODULE=on
-           ls -la
-           mkdir ${APP_PATH}
-           cp -rf * ${APP_PATH}
-           cd ${APP_PATH}
-           if [ ! -f "go.mod" ]; then
-              go mod init
-           fi
-           go mod download
-           go mod vendor
-           echo "${PIPELINE_URL}"
-           echo "${PRIVATE_TOKEN}"
-
-
-'''
+           eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)"
+           update_depedencies
+        '''
       }
     }
 
