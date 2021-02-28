@@ -11,6 +11,8 @@ pipeline {
         sh '''
            set +x
            eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)" > /dev/null
+           
+           set +x
            update_depedencies
         '''
       }
