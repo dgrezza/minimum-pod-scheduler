@@ -45,5 +45,6 @@ pipeline {
     APP_NAME = 'minimum-pod-scheduler'
     PIPELINE_URL = 'credentials(\'PIPELINE_URL\')'
     PRIVATE_TOKEN = 'credentials(\'PRIVATE_TOKEN\')'
+    GO_PATH = '/go/src'
   }
 }
