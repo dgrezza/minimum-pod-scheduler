@@ -9,10 +9,7 @@ pipeline {
     stage('Update Dependencies') {
       steps {
         sh '''
-           set +x
-           eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)"
-           
-           set +x
+           import_shared_lib
            update_depedencies
         '''
       }
@@ -21,11 +18,7 @@ pipeline {
     stage('Unit Test') {
       steps {
         sh '''
-        set +x
-        eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)"
-        
-        cd ${GO_PATH}/${APP_NAME}
-        set +x
+        import_shared_lib
         test_coverage
         '''
       }
@@ -38,4 +31,10 @@ pipeline {
     PRIVATE_TOKEN = credentials('PRIVATE_TOKEN')
     GO_PATH = '/go/src'
   }
+}
+
+def import_shared_lib(){
+  set +x
+  eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)"
+  set +x
 }
