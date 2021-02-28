@@ -8,26 +8,20 @@ pipeline {
   stages {
     stage('Update Dependencies') {
       steps {
-        sh '''export GO111MODULE=on
-export ROOT_LOCATION=$PWD
-  
-mkdir ${GO_PATH}/
-cp -fr . ${GO_PATH}/
-cd $GO_PATH
-go mod download
-go mod vendor
-rm -rf $ROOT_LOCATION/vendor/
-mkdir $ROOT_LOCATION/vendor/
-cp -fR vendor/. $ROOT_LOCATION/vendor/.
-cd $ROOT_LOCATION
-'''
+        sh '''
+           export GO111MODULE=on
+           la -la
+           go mod download
+           go mod vendor
+           '''
       }
     }
 
     stage('Unit Test') {
       steps {
-        sh '''ls -la
-'''
+        sh '''
+        ls -la
+        '''
       }
     }
 
