@@ -6,21 +6,27 @@ pipeline {
 
   }
   stages {
-    stage('Update Dependencies') {
+    stage('Test') {
       steps {
+        import_shared_lib
         sh '''
-           import_shared_lib
            update_depedencies
+           test_coverage
         '''
       }
     }
 
-    stage('Unit Test') {
+    stage('Build') {
       steps {
-        sh '''
         import_shared_lib
-        test_coverage
-        '''
+        sh "echo build"
+      }
+    }
+    
+    stage('Deploy') {
+      steps {
+        import_shared_lib
+        sh "echo deploy"
       }
     }
 
