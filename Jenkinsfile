@@ -10,7 +10,7 @@ pipeline {
       steps {
         sh '''
            export GO111MODULE=on
-           la -la
+           ls -la
            go mod download
            go mod vendor
            '''
