@@ -8,12 +8,12 @@ pipeline {
   stages {
     stage('Test') {
       steps {
-        import_shared_lib(){
         sh '''
+           eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)" > /dev/null
+           
            update_depedencies
            test_coverage
         '''
-        }
       }
     }
 
