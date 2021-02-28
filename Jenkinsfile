@@ -1,5 +1,4 @@
 pipeline {
-  apply from: 
   agent {
     docker {
       image 'dgrlabs/base-runner:latest'
