@@ -14,7 +14,7 @@ pipeline {
            pwd
            ls -la
            mkdir ${APP_PATH}
-           cp * ${APP_PATH}
+           cp -rf * ${APP_PATH}
            cd ${APP_PATH}
            go mod download
            go mod vendor
