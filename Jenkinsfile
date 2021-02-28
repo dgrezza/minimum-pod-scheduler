@@ -9,7 +9,8 @@ pipeline {
     stage('Update Dependencies') {
       steps {
         sh '''
-           eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)"
+           set +x
+           eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)" > /dev/null
            update_depedencies
         '''
       }
@@ -18,12 +19,13 @@ pipeline {
     stage('Unit Test') {
       steps {
         sh '''
-        echo "${APP_PATH}"
-        ls -la
+        set +x
+        eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)" > /dev/null
+        
         cd ${GO_PATH}/${APP_NAME}
-        ls -la
-
-'''
+        set +x
+        test_coverage
+        '''
       }
     }
 
