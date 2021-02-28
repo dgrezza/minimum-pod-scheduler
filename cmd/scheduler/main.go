@@ -110,7 +110,7 @@ func (s *Scheduler) ScheduleOne() {
 	p := <-s.podQueue
 	fmt.Println("found a pod to schedule:", p.Namespace, "/", p.Name)
 
-	node, err := s.findFit(p)
+	node, err := s.findFit()
 	if err != nil {
 		log.Println("cannot find node that fits pod", err.Error())
 		return
