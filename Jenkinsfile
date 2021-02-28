@@ -11,14 +11,13 @@ pipeline {
         sh '''
            APP_PATH=${GO_PATH}/${APP_NAME}
            export GO111MODULE=on
-           if [ ! -f "go.mod" ]; then
-              go mod init
-           fi
-
            ls -la
            mkdir ${APP_PATH}
            cp -rf * ${APP_PATH}
            cd ${APP_PATH}
+           if [ ! -f "go.mod" ]; then
+              go mod init
+           fi
            go mod download
            go mod vendor'''
       }
