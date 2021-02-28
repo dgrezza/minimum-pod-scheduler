@@ -31,16 +31,12 @@ pipeline {
     PRIVATE_TOKEN = credentials('PRIVATE_TOKEN')
     GO_PATH = '/go/src'
   }
-  
-  define {
-    def import_shared_lib() {
-    sh '''
-      set +x
-      eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)"
-      set +x
-    '''
-    }
-  }
 }
 
-
+def import_shared_lib() {
+  sh '''
+    set +x
+    eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)"
+    set +x
+  '''
+}
