@@ -9,13 +9,13 @@ pipeline {
     stage('Update Dependencies') {
       steps {
         sh '''
+           APP_PATH=${GO_PATH}/${APP_NAME}
            export GO111MODULE=on
            pwd
            ls -la
-           echo $GO_PATH
-           mkdir /go/src/${APP_NAME}
-           cp . /go/src/${APP_NAME}
-           cd /go/src/${APP_NAME}
+           mkdir ${APP_PATH}
+           cp * ${APP_PATH}
+           cd ${APP_PATH}
            go mod download
            go mod vendor
            '''
@@ -33,6 +33,6 @@ pipeline {
   }
   environment {
     APP_NAME = 'minimum-pod-scheduler'
-    GO_PATH = '/go/src/${APP_NAME}'
+    GO_PATH = '/go/src'
   }
 }
