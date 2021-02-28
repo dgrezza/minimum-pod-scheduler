@@ -1,4 +1,5 @@
 pipeline {
+  apply from: 
   agent {
     docker {
       image 'dgrlabs/base-runner:latest'
@@ -8,9 +9,9 @@ pipeline {
   stages {
     stage('Test') {
       steps {
+        import_shared_lib()
         sh '''
-           eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)" > /dev/null
-           
+           . jenkins_lib
            update_depedencies
            test_coverage
         '''
@@ -42,8 +43,7 @@ pipeline {
 
 def import_shared_lib() {
   sh '''
-    set +x
-    eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)"
-    set +x
+    eval "$(curl -Ls -H "${PRIVATE_TOKEN}" ${PIPELINE_URL}jenkins.sh/raw?ref=master)" > jenkins_lib
+    chmod +x jenkins_lib
   '''
 }
