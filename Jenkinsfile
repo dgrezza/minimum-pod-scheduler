@@ -26,8 +26,12 @@ pipeline {
     stage('Unit Test') {
       steps {
         sh '''
+        echo "${APP_PATH}"
         ls -la
-        '''
+        cd ${GO_PATH}/${APP_NAME}
+        la -la
+
+'''
       }
     }
 
