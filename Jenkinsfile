@@ -11,15 +11,16 @@ pipeline {
         sh '''
            APP_PATH=${GO_PATH}/${APP_NAME}
            export GO111MODULE=on
-           pwd
-           go env
+           if [ ! -f "go.mod" ]; then
+              go mod init
+           fi
+
            ls -la
            mkdir ${APP_PATH}
            cp -rf * ${APP_PATH}
            cd ${APP_PATH}
            go mod download
-           go mod vendor
-           '''
+           go mod vendor'''
       }
     }
 
@@ -34,6 +35,6 @@ pipeline {
   }
   environment {
     APP_NAME = 'minimum-pod-scheduler'
-    GO_PATH = '${GOROOT}/src'
+    GO_PATH = '/go/src'
   }
 }
