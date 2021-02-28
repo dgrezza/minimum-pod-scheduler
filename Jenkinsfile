@@ -1,7 +1,7 @@
 pipeline {
   agent {
     docker {
-      image 'dgrlabs/base-runner:latest'
+      image 'golang:1-alpine3.13'
     }
 
   }
@@ -12,7 +12,7 @@ pipeline {
 export ROOT_LOCATION=$PWD
   
 mkdir ${GO_PATH}/
-cp -fr ${CI_PROJECT_DIR}/* ${GO_PATH}/
+cp -fr . ${GO_PATH}/
 cd $GO_PATH
 go mod download
 go mod vendor
