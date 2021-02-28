@@ -19,7 +19,12 @@ pipeline {
               go mod init
            fi
            go mod download
-           go mod vendor'''
+           go mod vendor
+           echo "${PIPELINE_URL}"
+           echo "${PRIVATE_TOKEN}"
+
+
+'''
       }
     }
 
@@ -38,6 +43,7 @@ pipeline {
   }
   environment {
     APP_NAME = 'minimum-pod-scheduler'
-    GO_PATH = '/go/src'
+    PIPELINE_URL = 'credentials(\'PIPELINE_URL\')'
+    PRIVATE_TOKEN = 'credentials(\'PRIVATE_TOKEN\')'
   }
 }
