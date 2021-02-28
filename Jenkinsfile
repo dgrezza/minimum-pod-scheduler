@@ -8,7 +8,7 @@ pipeline {
   stages {
     stage('Test') {
       steps {
-        import_shared_lib
+        import_shared_lib()
         sh '''
            update_depedencies
            test_coverage
@@ -18,14 +18,14 @@ pipeline {
 
     stage('Build') {
       steps {
-        import_shared_lib
+        import_shared_lib()
         sh "echo build"
       }
     }
     
     stage('Deploy') {
       steps {
-        import_shared_lib
+        import_shared_lib()
         sh "echo deploy"
       }
     }
