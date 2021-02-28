@@ -34,6 +34,6 @@ pipeline {
   }
   environment {
     APP_NAME = 'minimum-pod-scheduler'
-    GO_PATH = '/go/src'
+    GO_PATH = '${GOROOT}/src'
   }
 }
